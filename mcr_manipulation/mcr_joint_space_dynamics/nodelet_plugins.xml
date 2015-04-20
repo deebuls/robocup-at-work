@@ -1,0 +1,7 @@
+<library path="lib/libarm_joint_space_dynamics">
+  <class name="mcr_joint_space_dynamics/ArmJointSpaceDynamics" type="arm_joint_space_dynamics::ArmJointSpaceDynamics" base_class_type="nodelet::Nodelet">
+    <description>
+        Nodelet to compute torques using the joint parameters
+    </description>
+  </class>
+</library>
