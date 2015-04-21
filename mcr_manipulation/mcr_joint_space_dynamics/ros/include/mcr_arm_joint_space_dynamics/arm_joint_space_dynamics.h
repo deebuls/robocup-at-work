@@ -11,10 +11,22 @@
 #define ARM_JOINT_SPACE_DYNAMICS_H
 
 //ROS includes
-#include <nodelet/nodelet.h>
 #include <ros/ros.h>
-#include <pluginlib/class_list_macros.h>
+#include <sensor_msgs/JointState.h>
+#include <ros/ros.h>
+#include <brics_actuator/JointVelocities.h>
+#include <brics_actuator/JointTorques.h>
+#include <tf/transform_listener.h>
 
+//KDL libraries
+#include <kdl/kdl.hpp>
+#include <kdl/jntarrayvel.hpp>
+#include <kdl/chainidsolver_recursive_newton_euler.hpp>
+//nodelet includes
+#include <nodelet/nodelet.h>
+#include <pluginlib/class_list_macros.h>
+//Reading urdf file
+#include "mcr_manipulation_utils/ros_urdf_loader.h"
 namespace mcr_joint_space_dynamics {
 class ArmJointSpaceDynamics: public nodelet::Nodelet
 {
@@ -22,8 +34,27 @@ public:
     ArmJointSpaceDynamics();
     virtual ~ArmJointSpaceDynamics();
 
+    void jointstateCallback(sensor_msgs::JointStateConstPtr joints) ;
 private:
+
+	std::string joint_state_topic_ ;
+	std::string tooltip_name_;
+	std::string root_name_;
+    
+    ros::NodeHandle *nh_;
+
+    ros::Subscriber sub_joint_states_;
+    KDL::Chain arm_chain_;
+    std::vector<boost::shared_ptr<urdf::JointLimits> > joint_limits_;
+    KDL::JntArray joint_positions_;
+    KDL::JntArrayVel joint_velocities_;
+    KDL::JntArray joint_torques_;
+    KDL::JntArray joint_accelerations_;
+    KDL::Wrench wrenches_; 
+
+    KDL::ChainIdSolver_RNE* inverse_dynamics_solver_;
     virtual void onInit();
+
 };
 
 PLUGINLIB_DECLARE_CLASS(mcr_joint_space_dynamics, ArmJointSpaceDynamics, mcr_joint_space_dynamics::ArmJointSpaceDynamics, nodelet::Nodelet);
