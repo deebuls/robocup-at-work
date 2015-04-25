@@ -27,6 +27,8 @@
 #include <pluginlib/class_list_macros.h>
 //Reading urdf file
 #include "mcr_manipulation_utils/ros_urdf_loader.h"
+//Reading brics actuator msgs
+#include <brics_actuator/JointTorques.h>
 namespace mcr_joint_space_dynamics {
 class ArmJointSpaceDynamics: public nodelet::Nodelet
 {
@@ -42,8 +44,8 @@ private:
 	std::string root_name_;
     
     ros::NodeHandle *nh_;
-
     ros::Subscriber sub_joint_states_;
+    ros::Publisher cmd_torque_publisher_;
     KDL::Chain arm_chain_;
     std::vector<boost::shared_ptr<urdf::JointLimits> > joint_limits_;
     KDL::JntArray joint_positions_;
@@ -51,9 +53,13 @@ private:
     KDL::JntArray joint_torques_;
     KDL::JntArray joint_accelerations_;
     KDL::Wrench wrenches_; 
-
     KDL::ChainIdSolver_RNE* inverse_dynamics_solver_;
+   
+    brics_actuator::JointTorques jointMsg_;
+
     virtual void onInit();
+    void initJointMsgs() ;
+    void publishJointTorques() ;
 
 };
 

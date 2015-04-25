@@ -52,6 +52,37 @@ void ArmJointSpaceDynamics::onInit()
 	//register subscriber
 	sub_joint_states_ = nh_->subscribe("joint_states",
 			1, &ArmJointSpaceDynamics::jointstateCallback, this);
+
+	//register publisher
+	cmd_torque_publisher_ = nh_->advertise<brics_actuator::JointTorques>(
+			"arm_1/arm_controller/torques_command", 1);
+
+}
+
+//TODO: change unit 
+void ArmJointSpaceDynamics::initJointMsgs() {
+	jointMsg_.torques.resize(arm_chain_.getNrOfJoints());
+	for (unsigned int i = 0; i < arm_chain_.getNrOfSegments(); i++) {
+		jointMsg_.torques[i].joint_uri =
+				arm_chain_.getSegment(i).getJoint().getName();
+		jointMsg_.torques[i].unit = "s^-1 rad";
+	}
+}
+
+
+void ArmJointSpaceDynamics::publishJointTorques() {
+
+	for (unsigned int i=0; i<joint_torques_.rows(); i++) {
+		jointMsg_.torques[i].value = joint_torques_.data[i];
+		ROS_DEBUG("%s: %.5f %s", jointMsg_.torques[i].joint_uri.c_str(), 
+			  jointMsg_.torques[i].value, jointMsg_.torques[i].unit.c_str());
+		if (isnan(jointMsg_.torques[i].value)) {
+			ROS_ERROR("invalid joint torque: nan");
+			return;
+		}
+	}
+	
+	cmd_torque_publisher_.publish(jointMsg_);
 }
 
 
@@ -69,7 +100,6 @@ void ArmJointSpaceDynamics::jointstateCallback(sensor_msgs::JointStateConstPtr j
 				joint_positions_.data[j] = joints->position[i];
 				joint_velocities_.q.data[j] = joints->position[i];
 				joint_velocities_.qdot.data[j] = joints->velocity[i];
-				//joint_torques_.data[j] = joints->effort[i];
                 joint_accelerations_.data[j] = 0;    //fillling zero accelerations
 			}
 		}
@@ -83,6 +113,9 @@ void ArmJointSpaceDynamics::jointstateCallback(sensor_msgs::JointStateConstPtr j
                                    wrenches,
                                    joint_torques_))
         std::cout << "id solver error " << std::endl;
+
+    //publish the torque stored in joint_torque_ 
+    publishJointTorques();
 
     std::cout << std::setprecision(5) << std::fixed;
 	for (unsigned i = 0; i < joints->position.size(); i++) {
