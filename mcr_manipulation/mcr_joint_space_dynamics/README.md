@@ -10,4 +10,4 @@ The external forces is provided by the user.
 The dynamical parameters are made available by robot_description and the chain
 created by it.
 
-[! Node Description](node_diag.png)
+![Node Description](node_diag.png)

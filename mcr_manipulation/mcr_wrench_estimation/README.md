@@ -9,4 +9,4 @@ The joints torques are taken by subscribing to /arm_1/arm_controller/torques_com
 The dynamical parameters are made available by robot_description and the chain
 created by it.
 
-[! Node Description](node_diag.png)
+![Node Description](node_diag.svg)
