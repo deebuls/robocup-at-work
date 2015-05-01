@@ -1,0 +1,7 @@
+<library path="lib/libwrench_estimation">
+  <class name="mcr_wrench_estimation/WrenchEstimation" type="mcr_wrench_estimation::WrenchEstimation" base_class_type="nodelet::Nodelet">
+    <description>
+        Nodelet to estimate wrench on the endfactor
+    </description>
+  </class>
+</library>

@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="input_topic" default="/joint_states" />
+  <arg name="node_name" default="mcr_wrench_estimation" />
+  <arg name="manager" default="nodelet_mcr_wrench_estimation" />
+  <arg name="type" default="load" />
+  
+  <node pkg="nodelet" type="nodelet" name="$(arg node_name)" ns="mcr_manipulation" args="$(arg type) mcr_wrench_estimation/WrenchEstimation $(arg manager)" output="screen" >
+    <remap from="~/joint_states" to="$(arg input_topic)" />
+    <rosparam command="load" file="$(find mcr_wrench_estimation)/ros/config/wrench_estimation.yaml" />
+  </node>
+  
+</launch>

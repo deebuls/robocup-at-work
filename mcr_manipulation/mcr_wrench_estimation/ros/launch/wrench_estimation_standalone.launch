@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="input_topic" default="/joint_states" />
+  <arg name="node_name" default="mcr_wrench_estimation" />
+  
+  <include file="$(find mcr_wrench_estimation)/ros/launch/wrench_estimation_nodelet.launch" >
+    <arg name="input_topic" value="$(arg input_topic)" />
+    <arg name="node_name" value="$(arg node_name)" />
+    <arg name="manager" value="nodelet_$(arg node_name)" />
+    <arg name="type" value="standalone" />
+  </include>
+
+  
+</launch>
