@@ -55,7 +55,7 @@ void ArmJointSpaceDynamics::onInit()
 
 	//register publisher
 	cmd_torque_publisher_ = nh_->advertise<brics_actuator::JointTorques>(
-			"arm_1/arm_controller/torques_command", 1);
+			"torques_command", 1);
 
 }
 
