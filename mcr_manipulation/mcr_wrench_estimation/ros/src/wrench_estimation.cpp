@@ -8,6 +8,7 @@ WrenchEstimation::WrenchEstimation()
 {
 }
 
+
 WrenchEstimation::~WrenchEstimation()
 {
     delete joint_to_jacobian_solver_  ;
@@ -34,14 +35,15 @@ void WrenchEstimation::onInit()
                      joint_limits_);
     ROS_INFO("DOF in the chain: %d", arm_chain_.getNrOfJoints());
     ROS_INFO("Chain initialized");
+    DOF_ = arm_chain_.getNrOfJoints();
 	//init
 	joint_positions_.resize(DOF_);
 	joint_torques_.resize(DOF_);
 
     joint_to_jacobian_solver_  = new KDL::ChainJntToJacSolver(arm_chain_);
-	
+    ROS_INFO("Chain initialized");
     //register subscriber
-	sub_joint_states_ = nh_->subscribe("joint_states",
+	sub_joint_states_ = nh_->subscribe("/joint_states",
 			1, &WrenchEstimation::jointstateCallback, this);
 
 	sub_torque_publisher_ = nh_->subscribe("/mcr_manipulation/mcr_joint_space_dynamics/torques_command",
@@ -55,8 +57,8 @@ void WrenchEstimation::onInit()
 
 
 void WrenchEstimation::jointstateCallback(sensor_msgs::JointStateConstPtr joints) {
-
-	for (unsigned i = 0; i < joints->position.size(); i++) {
+    
+    for (unsigned i = 0; i < joints->position.size(); i++) {
 
 		const char* joint_uri = joints->name[i].c_str();
 
@@ -116,7 +118,6 @@ bool WrenchEstimation::sendEstimatedWrench()
 
 void WrenchEstimation::torqueCallback(brics_actuator::JointTorques torques)
 {
-
 	for (unsigned int i=0; i<joint_torques_.rows(); i++) {
 		joint_torques_.data[i] = torques.torques[i].value ;
 		ROS_DEBUG("%s: %.5f %s", torques.torques[i].joint_uri.c_str(), 
@@ -129,4 +130,3 @@ void WrenchEstimation::torqueCallback(brics_actuator::JointTorques torques)
     if(!sendEstimatedWrench())
         ROS_ERROR("Error in sending wrench value");
 }
-
