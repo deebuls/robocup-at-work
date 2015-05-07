@@ -50,16 +50,15 @@ private:
     std::vector<boost::shared_ptr<urdf::JointLimits> > joint_limits_;
     KDL::JntArray joint_positions_;
     KDL::JntArrayVel joint_velocities_;
-    KDL::JntArray joint_torques_;
     KDL::JntArray joint_accelerations_;
-    KDL::Wrench wrenches_; 
     KDL::ChainIdSolver_RNE* inverse_dynamics_solver_;
    
-    brics_actuator::JointTorques jointMsg_;
+    brics_actuator::JointTorques joint_brics_msg_;
 
     virtual void onInit();
     void initJointMsgs() ;
-    void publishJointTorques() ;
+    void publishJointTorques(KDL::JntArray joint_torques) ;
+
 
 };
 
