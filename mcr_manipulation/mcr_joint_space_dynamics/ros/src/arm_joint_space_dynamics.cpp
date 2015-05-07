@@ -122,7 +122,6 @@ void ArmJointSpaceDynamics::jointstateCallback(sensor_msgs::JointStateConstPtr j
 void ArmJointSpaceDynamics::publishJointTorques(KDL::JntArray joint_torques) {
 	for (unsigned int i=0; i<joint_torques.rows(); i++) {
         joint_brics_msg_.torques[i].timeStamp = ros::Time::now();
-        std::cout << joint_brics_msg_.torques[i].timeStamp << ros::Time::now() << std::endl;
 		joint_brics_msg_.torques[i].value = joint_torques.data[i];
 		ROS_DEBUG("Calculated Torques %s: %.5f %s", joint_brics_msg_.torques[i].joint_uri.c_str(), 
 			  joint_brics_msg_.torques[i].value, joint_brics_msg_.torques[i].unit.c_str());
