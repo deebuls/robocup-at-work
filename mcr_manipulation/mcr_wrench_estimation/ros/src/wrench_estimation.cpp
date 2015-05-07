@@ -34,18 +34,17 @@ void WrenchEstimation::onInit()
                      joint_limits_);
     ROS_INFO("DOF in the chain: %d", arm_chain_.getNrOfJoints());
     ROS_INFO("Chain initialized");
-
 	//init
 	joint_positions_.resize(DOF_);
 	joint_torques_.resize(DOF_);
 
     joint_to_jacobian_solver_  = new KDL::ChainJntToJacSolver(arm_chain_);
-
-	//register subscriber
+	
+    //register subscriber
 	sub_joint_states_ = nh_->subscribe("joint_states",
 			1, &WrenchEstimation::jointstateCallback, this);
 
-	sub_torque_publisher_ = nh_->subscribe("torques_command",
+	sub_torque_publisher_ = nh_->subscribe("/mcr_manipulation/mcr_joint_space_dynamics/torques_command",
             1, &WrenchEstimation::torqueCallback, this);
 
 	//register publisher
@@ -113,5 +112,21 @@ bool WrenchEstimation::sendEstimatedWrench()
     pub_estimated_wrench_.publish(estimated_wrench_msg);
 
     return true;
+}
+
+void WrenchEstimation::torqueCallback(brics_actuator::JointTorques torques)
+{
+
+	for (unsigned int i=0; i<joint_torques_.rows(); i++) {
+		joint_torques_.data[i] = torques.torques[i].value ;
+		ROS_DEBUG("%s: %.5f %s", torques.torques[i].joint_uri.c_str(), 
+			  torques.torques[i].value, torques.torques[i].unit.c_str());
+		if (isnan(torques.torques[i].value)) {
+			ROS_ERROR("invalid joint torque: nan");
+			return;
+		}
+	}
+    if(!sendEstimatedWrench())
+        ROS_ERROR("Error in sending wrench value");
 }
 
