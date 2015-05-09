@@ -1,0 +1,7 @@
+<library path="lib/libtorque_comparator">
+  <class name="mcr_torque_comparator/TorqueComparator" type="mcr_torque_comparator::TorqueComparator" base_class_type="nodelet::Nodelet">
+    <description>
+        Nodelet to compare the measured Torque and calculated Torque of each joint
+    </description>
+  </class>
+</library>

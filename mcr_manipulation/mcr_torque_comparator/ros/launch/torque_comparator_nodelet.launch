@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="input_topic" default="/joint_states" />
+  <arg name="node_name" default="mcr_torque_comparator" />
+  <arg name="manager" default="nodelet_mcr_torque_comparator" />
+  <arg name="type" default="load" />
+  
+  <node pkg="nodelet" type="nodelet" name="$(arg node_name)" ns="mcr_manipulation" args="$(arg type) mcr_torque_comparator/TorqueComparator $(arg manager)" output="screen" >
+    <remap from="~/joint_states" to="$(arg input_topic)" />
+    <rosparam command="load" file="$(find mcr_torque_comparator)/ros/config/torque_comparator.yaml" />
+  </node>
+  
+</launch>
