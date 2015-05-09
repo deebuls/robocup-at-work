@@ -72,9 +72,9 @@ void ArmJointSpaceDynamics::initJointMsgs() {
 void ArmJointSpaceDynamics::jointstateCallback(sensor_msgs::JointStateConstPtr joints) {
 
     KDL::Wrenches wrenches ;
-    KDL::JntArray joint_torques;
+    KDL::JntArray calculated_joint_torques;
 	wrenches.resize(arm_chain_.getNrOfJoints());
-    joint_torques.resize(arm_chain_.getNrOfJoints());
+    calculated_joint_torques.resize(arm_chain_.getNrOfJoints());
 
 	for (unsigned i = 0; i < joints->position.size(); i++) {
 
@@ -90,6 +90,7 @@ void ArmJointSpaceDynamics::jointstateCallback(sensor_msgs::JointStateConstPtr j
 				joint_velocities_.qdot.data[j] = joints->velocity[i];
                 joint_accelerations_.data[j] = 0;    //fillling zero accelerations
                 wrenches[j] = KDL::Wrench::Zero();
+                joint_brics_msg_.torques[i].timeStamp = joints->header.stamp; //filling time stamp for synchronize
 			}
 		}
 	}
@@ -98,7 +99,7 @@ void ArmJointSpaceDynamics::jointstateCallback(sensor_msgs::JointStateConstPtr j
                                    joint_velocities_.qdot,
                                    joint_accelerations_,
                                    wrenches,
-                                   joint_torques))
+                                   calculated_joint_torques))
 		ROS_ERROR("Inverse dynamics solver errror ");
 
 
@@ -110,19 +111,18 @@ void ArmJointSpaceDynamics::jointstateCallback(sensor_msgs::JointStateConstPtr j
 			const char* chainjoint =
 					arm_chain_.getSegment(j).getJoint().getName().c_str();
 			if (chainjoint != 0 && strcmp(chainjoint, joint_uri) == 0) {
-                //std::cout << j << " : " << (joint_torques.data[j] - joints->effort[i] ) << std::endl ;
+                //std::cout << j << " : " << (calculated_joint_torques.data[j] - joints->effort[i] ) << std::endl ;
                 //std::cout << j << " : " << (joints->effort[i] ) << std::endl ;
 			}
 		}
 	}
     //publish the torque stored in joint_torque
-    publishJointTorques(joint_torques);
+    publishJointTorques(calculated_joint_torques);
 }
 
-void ArmJointSpaceDynamics::publishJointTorques(KDL::JntArray joint_torques) {
-	for (unsigned int i=0; i<joint_torques.rows(); i++) {
-        joint_brics_msg_.torques[i].timeStamp = ros::Time::now();
-		joint_brics_msg_.torques[i].value = joint_torques.data[i];
+void ArmJointSpaceDynamics::publishJointTorques(KDL::JntArray calculated_joint_torques) {
+	for (unsigned int i=0; i<calculated_joint_torques.rows(); i++) {
+		joint_brics_msg_.torques[i].value = calculated_joint_torques.data[i];
 		ROS_DEBUG("Calculated Torques %s: %.5f %s", joint_brics_msg_.torques[i].joint_uri.c_str(), 
 			  joint_brics_msg_.torques[i].value, joint_brics_msg_.torques[i].unit.c_str());
 		if (isnan(joint_brics_msg_.torques[i].value)) {
