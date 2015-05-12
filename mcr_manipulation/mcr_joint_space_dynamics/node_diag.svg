@@ -14,7 +14,7 @@
    id="svg2"
    version="1.1"
    inkscape:version="0.48.3.1 r9886"
-   sodipodi:docname="New document 1">
+   sodipodi:docname="node_diag.svg">
   <defs
      id="defs4">
     <marker
@@ -38,15 +38,15 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.7"
-     inkscape:cx="192.9741"
-     inkscape:cy="550.54123"
+     inkscape:zoom="0.42177734"
+     inkscape:cx="551.61286"
+     inkscape:cy="508.74512"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="true"
-     inkscape:window-width="1301"
+     inkscape:window-width="1366"
      inkscape:window-height="744"
-     inkscape:window-x="65"
+     inkscape:window-x="0"
      inkscape:window-y="24"
      inkscape:window-maximized="1">
     <inkscape:grid
@@ -182,20 +182,37 @@
     <text
        xml:space="preserve"
        style="font-size:22px;font-style:normal;font-weight:normal;text-align:start;line-height:100%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
-       x="568.68225"
-       y="373.21933"
-       id="text5321"
+       x="578"
+       y="304.36218"
+       id="text5321-3"
        sodipodi:linespacing="100%"
        inkscape:export-filename="/home/deebuls/catkin_ws/src/mas_common_robotics/mcr_manipulation/mcr_joint_space_dynamics/node_diag.png"
        inkscape:export-xdpi="324.42661"
        inkscape:export-ydpi="324.42661"><tspan
          sodipodi:role="line"
-         id="tspan5323"
-         x="568.68225"
-         y="373.21933">Joint Torques</tspan><tspan
+         id="tspan5323-5"
+         x="578"
+         y="304.36218"
+         style="text-align:start;text-anchor:start"> calculated Joint Torques</tspan><tspan
          sodipodi:role="line"
-         x="568.68225"
-         y="395.21933"
-         id="tspan5325">/brics_actuator/JointTorques</tspan></text>
+         x="578"
+         y="326.36218"
+         style="text-align:start;text-anchor:start"
+         id="tspan3197">topic : /mcr_manipulation/</tspan><tspan
+         sodipodi:role="line"
+         x="578"
+         y="348.36218"
+         style="text-align:start;text-anchor:start"
+         id="tspan3207">            mcr_joint_space_dynamics/</tspan><tspan
+         sodipodi:role="line"
+         x="578"
+         y="370.36218"
+         style="text-align:start;text-anchor:start"
+         id="tspan3199">            torques_calculated</tspan><tspan
+         sodipodi:role="line"
+         x="578"
+         y="392.36218"
+         id="tspan5325-8"
+         style="text-align:start;text-anchor:start">msg : /brics_actuator/JointTorques</tspan></text>
   </g>
 </svg>
