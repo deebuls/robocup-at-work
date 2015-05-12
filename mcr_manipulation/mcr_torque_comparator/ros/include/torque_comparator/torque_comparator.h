@@ -15,7 +15,9 @@
 #include <sensor_msgs/JointState.h>
 #include <geometry_msgs/WrenchStamped.h>
 #include <ros/ros.h>
-
+#include <message_filters/subscriber.h>
+#include <message_filters/time_synchronizer.h>
+#include <message_filters/sync_policies/exact_time.h>
 //KDL libraries
 #include <kdl/kdl.hpp>
 #include <kdl/jntarray.hpp>
@@ -36,9 +38,9 @@ class TorqueComparator: public nodelet::Nodelet
 {
 public:
     ros::NodeHandle *nh_;
-    ros::Subscriber sub_joint_states_;
-    ros::Subscriber sub_torque_publisher_;
-
+    message_filters::Subscriber<sensor_msgs::JointState> sub_joint_states_;
+    message_filters::Subscriber<brics_actuator::JointTorques> sub_torque_publisher_;
+    message_filters::TimeSynchronizer<sensor_msgs::JointState,brics_actuator::JointTorques> *sync_;
     // force estimation from joint efforts
 	ros::Publisher pub_estimated_wrench_;
 

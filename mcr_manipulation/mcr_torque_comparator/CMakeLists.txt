@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(mcr_torque_comparator)
 
-find_package(catkin REQUIRED COMPONENTS roscpp sensor_msgs mcr_manipulation_utils brics_actuator tf urdf nodelet std_msgs)
+find_package(catkin REQUIRED COMPONENTS roscpp sensor_msgs mcr_manipulation_utils brics_actuator tf urdf nodelet std_msgs message_filters)
 find_package(eigen REQUIRED)
 find_package(orocos_kdl REQUIRED)
 

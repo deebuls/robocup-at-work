@@ -22,33 +22,12 @@ void TorqueComparator::onInit()
     nh_->getParam("root_name", root_name_);
     nh_->getParam("tip_name", tooltip_name_);
 
-    ROS_INFO("---------------------");
-    ROS_INFO("Initializing chain from %s to %s", root_name_.c_str(),
-            tooltip_name_.c_str());
-
-	//load URDF model
-	ROS_URDF_Loader loader;
-	loader.loadModel(*nh_,
-                     root_name_,
-                     tooltip_name_,
-                     arm_chain_,
-                     joint_limits_);
-    ROS_INFO("DOF in the chain: %d", arm_chain_.getNrOfJoints());
-    ROS_INFO("Chain initialized");
-    DOF_ = arm_chain_.getNrOfJoints();
-	//init
-	joint_positions_.resize(DOF_);
-	joint_torques_.resize(DOF_);
-
-    joint_to_jacobian_solver_  = new KDL::ChainJntToJacSolver(arm_chain_);
-    ROS_INFO("Chain initialized");
     //register subscriber
-	sub_joint_states_ = nh_->subscribe("/joint_states",
-			1, &TorqueComparator::jointstateCallback, this);
+	sub_joint_states_.subscribe(*nh_, "/joint_states",1);
 
-	sub_torque_publisher_ = nh_->subscribe("/mcr_manipulation/mcr_joint_space_dynamics/torques_command",
-            1, &TorqueComparator::torqueCallback, this);
-
+	sub_torque_publisher_.subscribe(*nh_, "/mcr_manipulation/mcr_joint_space_dynamics/torques_calculated",
+            1);
+    sync_ = new message_filters::TimeSynchronizer<sensor_msgs::JointState,brics_actuator::JointTorques>(sub_joint_states_, sub_torque_publisher_,1);
 	//register publisher
 	pub_estimated_wrench_ = nh_->advertise<geometry_msgs::WrenchStamped>("estimated_wrench", 1);
 }
@@ -72,50 +51,6 @@ void TorqueComparator::jointstateCallback(sensor_msgs::JointStateConstPtr joints
 		}
 	}
 }
-
-// expressed in the base frame
-bool TorqueComparator::sendEstimatedWrench()
-{
-    // first get the jacobian
-    KDL::Jacobian J(DOF_);
-
-    KDL::JntArray q_in;
-    q_in.resize(DOF_);
-
-    for(unsigned int i=0; i<DOF_; i++)
-    {
-        q_in(i) = joint_positions_.data[i];
-    }
-
-    joint_to_jacobian_solver_->JntToJac(q_in, J);
-
-    Eigen::MatrixXd joint_effort;
-    joint_effort.resize(DOF_, 1);
-
-    for(unsigned int i=0; i<DOF_; i++)
-        joint_effort(i) = joint_torques_.data[i];
-
-    Eigen::MatrixXd JT = J.data.transpose();
-    Eigen::Matrix<double, 6, 1> estimated_wrench =
-            JT.jacobiSvd(Eigen::ComputeFullU | Eigen::ComputeFullV).solve(joint_effort);
-
-    geometry_msgs::WrenchStamped estimated_wrench_msg;
-    estimated_wrench_msg.header.stamp = ros::Time::now();
-    estimated_wrench_msg.header.frame_id = root_name_;
-
-    estimated_wrench_msg.wrench.force.x = estimated_wrench(0);
-    estimated_wrench_msg.wrench.force.y = estimated_wrench(1);
-    estimated_wrench_msg.wrench.force.z = estimated_wrench(2);
-
-    estimated_wrench_msg.wrench.torque.x = estimated_wrench(3);
-    estimated_wrench_msg.wrench.torque.y = estimated_wrench(4);
-    estimated_wrench_msg.wrench.torque.z = estimated_wrench(5);
-
-    pub_estimated_wrench_.publish(estimated_wrench_msg);
-
-    return true;
-}
-
 void TorqueComparator::torqueCallback(brics_actuator::JointTorques torques)
 {
 	for (unsigned int i=0; i<joint_torques_.rows(); i++) {
