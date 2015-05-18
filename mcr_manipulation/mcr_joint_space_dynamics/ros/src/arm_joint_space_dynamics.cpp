@@ -52,23 +52,19 @@ void ArmJointSpaceDynamics::onInit()
 			1, &ArmJointSpaceDynamics::jointstateCallback, this);
 
 	//register publisher
-	cmd_torque_publisher_ = nh_->advertise<brics_actuator::JointTorques>(
-			"torques_command", 1);
+	cmd_torque_publisher_ = nh_->advertise<sensor_msgs::JointState>(
+			"torques_calculated", 1);
 
 
 }
 
-//TODO: change unit 
+
 void ArmJointSpaceDynamics::initJointMsgs() {
-	joint_brics_msg_.torques.resize(arm_chain_.getNrOfJoints());
-	for (unsigned int i = 0; i < arm_chain_.getNrOfSegments(); i++) {
-		joint_brics_msg_.torques[i].joint_uri =
-				arm_chain_.getSegment(i).getJoint().getName();
-		joint_brics_msg_.torques[i].unit = "Nm";
-	}
+    calculated_joint_states_.position.resize(arm_chain_.getNrOfJoints());
+    calculated_joint_states_.velocity.resize(arm_chain_.getNrOfJoints());
+    calculated_joint_states_.effort.resize(arm_chain_.getNrOfJoints());
+    calculated_joint_states_.name.resize(arm_chain_.getNrOfJoints());
 }
-
-
 void ArmJointSpaceDynamics::jointstateCallback(sensor_msgs::JointStateConstPtr joints) {
 
     KDL::Wrenches wrenches ;
@@ -85,15 +81,28 @@ void ArmJointSpaceDynamics::jointstateCallback(sensor_msgs::JointStateConstPtr j
 					arm_chain_.getSegment(j).getJoint().getName().c_str();
 
 			if (chainjoint != 0 && strcmp(chainjoint, joint_uri) == 0) {
+                double velocity_difference = joint_velocities_.qdot.data[j] - joints->velocity[i];
+                double time_difference = calculated_joint_states_.header.stamp.toSec() - joints->header.stamp.toSec();
 				joint_positions_.data[j] = joints->position[i];
 				joint_velocities_.q.data[j] = joints->position[i];
 				joint_velocities_.qdot.data[j] = joints->velocity[i];
-                joint_accelerations_.data[j] = 0;    //fillling zero accelerations
+                joint_accelerations_.data[j] = velocity_difference/time_difference;
+                if (isnan(joint_accelerations_.data[j])) {
+                    joint_accelerations_.data[j] = 0;
+                }
                 wrenches[j] = KDL::Wrench::Zero();
-                joint_brics_msg_.torques[i].timeStamp = joints->header.stamp; //filling time stamp for synchronize
+
+                calculated_joint_states_.position[i] = joints->position[i];
+                calculated_joint_states_.velocity[i] = joints->velocity[i];
+                calculated_joint_states_.name[i] = joints->name[i];
+                std::cout << "time difference : "<<time_difference <<std::endl;
 			}
 		}
 	}
+
+    calculated_joint_states_.header.stamp = joints->header.stamp;
+    calculated_joint_states_.header.frame_id = joints->header.frame_id;
+    calculated_joint_states_.header.seq = joints->header.seq;
 
     if(0 > inverse_dynamics_solver_->CartToJnt(joint_positions_,
                                    joint_velocities_.qdot,
@@ -117,19 +126,19 @@ void ArmJointSpaceDynamics::jointstateCallback(sensor_msgs::JointStateConstPtr j
 		}
 	}
     //publish the torque stored in joint_torque
-    publishJointTorques(calculated_joint_torques);
+    publishJointTorques(calculated_joint_torques );
 }
 
 void ArmJointSpaceDynamics::publishJointTorques(KDL::JntArray calculated_joint_torques) {
 	for (unsigned int i=0; i<calculated_joint_torques.rows(); i++) {
-		joint_brics_msg_.torques[i].value = calculated_joint_torques.data[i];
-		ROS_DEBUG("Calculated Torques %s: %.5f %s", joint_brics_msg_.torques[i].joint_uri.c_str(), 
-			  joint_brics_msg_.torques[i].value, joint_brics_msg_.torques[i].unit.c_str());
-		if (isnan(joint_brics_msg_.torques[i].value)) {
+        calculated_joint_states_.effort[i] = calculated_joint_torques.data[i];
+		ROS_DEBUG("Calculated Torques %s: %.5f ", calculated_joint_states_.name[i].c_str(), 
+			  calculated_joint_states_.effort[i] );
+		if (isnan(calculated_joint_states_.effort[i])) {
 			ROS_ERROR("invalid joint torque: nan");
 			return;
 		}
 	}
-	cmd_torque_publisher_.publish(joint_brics_msg_);
+	cmd_torque_publisher_.publish(calculated_joint_states_);
 }
 
