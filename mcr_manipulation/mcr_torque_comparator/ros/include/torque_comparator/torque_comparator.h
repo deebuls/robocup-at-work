@@ -39,16 +39,20 @@ class TorqueComparator: public nodelet::Nodelet
 public:
     ros::NodeHandle *nh_;
     message_filters::Subscriber<sensor_msgs::JointState> sub_joint_states_;
-    message_filters::Subscriber<brics_actuator::JointTorques> sub_torque_publisher_;
-    message_filters::TimeSynchronizer<sensor_msgs::JointState,brics_actuator::JointTorques> *sync_;
+    message_filters::Subscriber<sensor_msgs::JointState> sub_calculated_torques_;
+    /*
+     * Synchronized subscriber
+     */
+    message_filters::TimeSynchronizer<sensor_msgs::JointState,sensor_msgs::JointState> *sync_;
     // force estimation from joint efforts
-	ros::Publisher pub_estimated_wrench_;
+	ros::Publisher cmd_torque_publisher_;
 
     TorqueComparator();
     virtual ~TorqueComparator();
 
-    void jointstateCallback(sensor_msgs::JointStateConstPtr joints) ;
-    void torqueCallback(brics_actuator::JointTorques torques);
+    void syncCallback(const sensor_msgs::JointStateConstPtr &joints,
+                            const sensor_msgs::JointStateConstPtr &calculate_joints ) ;
+    
 private:
 
 	std::string joint_state_topic_ ;
@@ -61,7 +65,8 @@ private:
     KDL::JntArray joint_positions_;
     KDL::JntArray joint_torques_;
 
-    KDL::ChainJntToJacSolver *joint_to_jacobian_solver_;
+    brics_actuator::JointTorques joint_brics_msg_ ;
+
     virtual void onInit();
     void initJointMsgs() ;
     bool sendEstimatedWrench();

@@ -11,7 +11,6 @@ TorqueComparator::TorqueComparator()
 
 TorqueComparator::~TorqueComparator()
 {
-    delete joint_to_jacobian_solver_  ;
 }
 
 void TorqueComparator::onInit()
@@ -24,44 +23,47 @@ void TorqueComparator::onInit()
 
     //register subscriber
 	sub_joint_states_.subscribe(*nh_, "/joint_states",1);
-
-	sub_torque_publisher_.subscribe(*nh_, "/mcr_manipulation/mcr_joint_space_dynamics/torques_calculated",
-            1);
-    sync_ = new message_filters::TimeSynchronizer<sensor_msgs::JointState,brics_actuator::JointTorques>(sub_joint_states_, sub_torque_publisher_,1);
+    //load URDF model
+    ROS_URDF_Loader loader;
+    loader.loadModel(*nh_,
+                    root_name_,
+                    tooltip_name_,
+                    arm_chain_,
+                    joint_limits_);
+    initJointMsgs();
+	sub_calculated_torques_.subscribe(*nh_, "/mcr_manipulation/mcr_joint_space_dynamics/torques_calculated", 1);
+    sync_ = new message_filters::TimeSynchronizer<sensor_msgs::JointState,sensor_msgs::JointState>(sub_joint_states_, sub_calculated_torques_,1);
+    sync_->registerCallback(boost::bind(&TorqueComparator::syncCallback,this,  _1, _2));
 	//register publisher
-	pub_estimated_wrench_ = nh_->advertise<geometry_msgs::WrenchStamped>("estimated_wrench", 1);
-}
-
-
-
-
-void TorqueComparator::jointstateCallback(sensor_msgs::JointStateConstPtr joints) {
     
-    for (unsigned i = 0; i < joints->position.size(); i++) {
-
-		const char* joint_uri = joints->name[i].c_str();
-
-		for (unsigned int j = 0; j < DOF_; j++) {
-			const char* chainjoint =
-					arm_chain_.getSegment(j).getJoint().getName().c_str();
-
-			if (chainjoint != 0 && strcmp(chainjoint, joint_uri) == 0) {
-				joint_positions_.data[j] = joints->position[i];
-			}
-		}
-	}
+    //register publisher
+    cmd_torque_publisher_ = nh_->advertise<brics_actuator::JointTorques>(
+                  "torques_difference", 1);
 }
-void TorqueComparator::torqueCallback(brics_actuator::JointTorques torques)
-{
-	for (unsigned int i=0; i<joint_torques_.rows(); i++) {
-		joint_torques_.data[i] = torques.torques[i].value ;
-		ROS_DEBUG("%s: %.5f %s", torques.torques[i].joint_uri.c_str(), 
-			  torques.torques[i].value, torques.torques[i].unit.c_str());
-		if (isnan(torques.torques[i].value)) {
-			ROS_ERROR("invalid joint torque: nan");
-			return;
-		}
-	}
-    if(!sendEstimatedWrench())
-        ROS_ERROR("Error in sending wrench value");
+
+
+void TorqueComparator::initJointMsgs() {
+    joint_brics_msg_.torques.resize(arm_chain_.getNrOfJoints());
+    for (unsigned int i = 0; i < arm_chain_.getNrOfSegments(); i++) {
+        joint_brics_msg_.torques[i].joint_uri =
+                arm_chain_.getSegment(i).getJoint().getName();
+        joint_brics_msg_.torques[i].unit = "Nm";
+    }
 }
+void TorqueComparator::syncCallback(const sensor_msgs::JointStateConstPtr &joints,
+                                          const sensor_msgs::JointStateConstPtr &calculate_joints ) {
+
+    for (unsigned int i = 0; i < arm_chain_.getNrOfJoints(); i++) {
+        joint_brics_msg_.torques[i].timeStamp = joints->header.stamp; 
+        joint_brics_msg_.torques[i].value = joints->effort[i] - calculate_joints->effort[i] ;
+        ROS_DEBUG("Difference Torques %s: %.5f %s", joint_brics_msg_.torques[i].joint_uri.c_str(), 
+              joint_brics_msg_.torques[i].value, joint_brics_msg_.torques[i].unit.c_str());
+        if (isnan(joint_brics_msg_.torques[i].value)) {
+            ROS_ERROR("invalid joint torque: nan");
+            return;
+        }
+    }
+	
+    cmd_torque_publisher_.publish(joint_brics_msg_);
+}
+
