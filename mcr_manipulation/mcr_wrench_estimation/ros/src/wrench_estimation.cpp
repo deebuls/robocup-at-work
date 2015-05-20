@@ -46,7 +46,7 @@ void WrenchEstimation::onInit()
 	sub_joint_states_ = nh_->subscribe("/joint_states",
 			1, &WrenchEstimation::jointstateCallback, this);
 
-	sub_torque_publisher_ = nh_->subscribe("/mcr_manipulation/mcr_joint_space_dynamics/torques_command",
+	sub_torque_publisher_ = nh_->subscribe("/mcr_manipulation/mcr_torque_comparator/torques_difference",
             1, &WrenchEstimation::torqueCallback, this);
 
 	//register publisher
