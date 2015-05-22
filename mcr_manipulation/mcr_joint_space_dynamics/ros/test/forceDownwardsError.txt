@@ -1,0 +1,5 @@
+[ WARN] [1432138308.428050362]: arm_joint_2 exceeded I2t
+[ WARN] [1432138308.447961128]: arm_joint_2 exceeded I2t
+[ WARN] [1432138308.448042446]: arm_joint_2 exceeded I2t
+[ WARN] [1432138308.468016813]: arm_joint_2 exceeded I2t
+[ WARN] [1432138308.468140768]: arm_joint_2 exceeded I2t
