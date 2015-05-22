@@ -52,8 +52,10 @@ void TorqueComparator::initJointMsgs() {
 }
 void TorqueComparator::syncCallback(const sensor_msgs::JointStateConstPtr &joints,
                                           const sensor_msgs::JointStateConstPtr &calculate_joints ) {
-
+    std::cout<<"CHECKPOINT 1 : "<<joints->position[0]<<std::endl;
     for (unsigned int i = 0; i < arm_chain_.getNrOfJoints(); i++) {
+        std::cout<<"CHECKPOINT 2 : "<<calculate_joints->effort[i]<<std::endl;
+        std::cout<<"CHECKPOINT 2 : "<<joints->effort[i]<<std::endl;
         joint_brics_msg_.torques[i].timeStamp = joints->header.stamp; 
         joint_brics_msg_.torques[i].value = joints->effort[i] - calculate_joints->effort[i] ;
         ROS_DEBUG("Difference Torques %s: %.5f %s", joint_brics_msg_.torques[i].joint_uri.c_str(), 

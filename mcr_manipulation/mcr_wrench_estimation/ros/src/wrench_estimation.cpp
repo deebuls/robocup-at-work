@@ -119,7 +119,7 @@ bool WrenchEstimation::sendEstimatedWrench()
 void WrenchEstimation::torqueCallback(brics_actuator::JointTorques torques)
 {
 	for (unsigned int i=0; i<joint_torques_.rows(); i++) {
-		joint_torques_.data[i] = torques.torques[i].value ;
+		joint_torques_.data[i] = -1 * torques.torques[i].value ;
 		ROS_DEBUG("%s: %.5f %s", torques.torques[i].joint_uri.c_str(), 
 			  torques.torques[i].value, torques.torques[i].unit.c_str());
 		if (isnan(torques.torques[i].value)) {
