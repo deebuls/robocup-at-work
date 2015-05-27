@@ -29,33 +29,117 @@
 #include "mcr_manipulation_utils/ros_urdf_loader.h"
 
 namespace mcr_joint_space_dynamics {
+
+/**
+ * Calculates the joint torques based on the measured Joint positions 
+ * and Joint accelerations (calculated using difference).
+ *
+ * Subscribe to:
+ * - /joint_states - joint state for Joint position and velocity
+ *
+ * Published to:
+ *  - torques_calculated - to publish calculated torques
+ *
+ */
 class ArmJointSpaceDynamics: public nodelet::Nodelet
 {
-public:
-    ArmJointSpaceDynamics();
-    virtual ~ArmJointSpaceDynamics();
+    public:
+        /*
+         * Constructor
+         */
+        ArmJointSpaceDynamics();
 
-    void jointstateCallback(sensor_msgs::JointStateConstPtr joints) ;
-private:
+        /*
+         * Destructor
+         */
+        virtual ~ArmJointSpaceDynamics();
+        
+        /*
+         * Callback for Joint states
+         * Calls the inverse dynamics solver and determines the calculated
+         * torques
+         * Calls the publisher with the calculated torques
+         */
+        void jointstateCallback(sensor_msgs::JointStateConstPtr joints) ;
+    private:
+        /*
+         * storing end factor name provided by launch parameters
+         */
+        std::string tooltip_name_;
 
-	std::string joint_state_topic_ ;
-	std::string tooltip_name_;
-	std::string root_name_;
+        /*
+         * storing root joint name provided by launch parameters
+         */
+        std::string root_name_;
+        
+        /*
+         * Node handle pointer
+         */
+        ros::NodeHandle *nh_;
+
+        /*
+         * Joint state subscriber
+         */
+        ros::Subscriber sub_joint_states_;
+
+        /*
+         * Torque publisher
+         */
+        ros::Publisher cmd_torque_publisher_;
+
+        /*
+         * KDL chain of the arm
+         */
+        KDL::Chain arm_chain_;
+
+        /*
+         * Joint Limits 
+         */
+        std::vector<boost::shared_ptr<urdf::JointLimits> > joint_limits_;
+
+        /*
+         * Joint Positions
+         */
+        KDL::JntArray joint_positions_;
+
+        /*
+         * Joint Velocities
+         */
+        KDL::JntArrayVel joint_velocities_;
+
+        /*
+         * Joint Acceleartions
+         */
+        KDL::JntArray joint_accelerations_;
+
+        /*
+         * Inverse Dynamics Solver
+         */
+        KDL::ChainIdSolver_RNE* inverse_dynamics_solver_;
     
-    ros::NodeHandle *nh_;
-    ros::Subscriber sub_joint_states_;
-    ros::Publisher cmd_torque_publisher_;
-    KDL::Chain arm_chain_;
-    std::vector<boost::shared_ptr<urdf::JointLimits> > joint_limits_;
-    KDL::JntArray joint_positions_;
-    KDL::JntArrayVel joint_velocities_;
-    KDL::JntArray joint_accelerations_;
-    KDL::ChainIdSolver_RNE* inverse_dynamics_solver_;
-   
-    sensor_msgs::JointState calculated_joint_states_ ;
-    virtual void onInit();
-    void initJointMsgs() ;
-    void publishJointTorques(KDL::JntArray joint_torques) ;
+        /*
+         * Calculated Joint Torques for publishing
+         */
+        sensor_msgs::JointState calculated_joint_states_ ;
+
+        /*
+         * Nodelet initializtion 
+         * Mandatory required for nodelets
+         * Reads the params provided and loads the urdf file
+         * creates the subscriber and the publisher
+         * inialiazes the Joint messages
+         */
+        virtual void onInit();
+
+        /*
+         * Initializes the Joint messages
+         */
+        void initJointMsgs() ;
+
+        /*
+         * Publishes the calculates Torques 
+         */
+        void publishJointTorques(KDL::JntArray joint_torques) ;
 
 
 };

@@ -40,7 +40,6 @@ void ArmJointSpaceDynamics::onInit()
     initJointMsgs();
 
     //Initializing the inverse dynamics solver
-    //TODO : gravity wrt to base frame . cannot confirm the z is upwards
     //gravity acting on negative z direction
     KDL::Vector gravity(0.0, 0.0, -9.81);
     // External forces acting on the arm is zero
@@ -81,8 +80,14 @@ void ArmJointSpaceDynamics::jointstateCallback(sensor_msgs::JointStateConstPtr j
 					arm_chain_.getSegment(j).getJoint().getName().c_str();
 
 			if (chainjoint != 0 && strcmp(chainjoint, joint_uri) == 0) {
+
+                //Calculating accelaration based on previous velocity and
+                //current velocity 
                 double velocity_difference = joint_velocities_.qdot.data[j] - joints->velocity[i];
                 double time_difference = calculated_joint_states_.header.stamp.toSec() - joints->header.stamp.toSec();
+
+                //Filling position values
+
 				joint_positions_.data[j] = joints->position[i];
 				joint_velocities_.q.data[j] = joints->position[i];
 				joint_velocities_.qdot.data[j] = joints->velocity[i];
@@ -111,20 +116,6 @@ void ArmJointSpaceDynamics::jointstateCallback(sensor_msgs::JointStateConstPtr j
                                    calculated_joint_torques))
 		ROS_ERROR("Inverse dynamics solver errror ");
 
-
-    std::cout << std::setprecision(5) << std::fixed;
-	for (unsigned i = 0; i < joints->position.size(); i++) {
-
-		const char* joint_uri = joints->name[i].c_str();
-		for (unsigned int j = 0; j < arm_chain_.getNrOfJoints(); j++) {
-			const char* chainjoint =
-					arm_chain_.getSegment(j).getJoint().getName().c_str();
-			if (chainjoint != 0 && strcmp(chainjoint, joint_uri) == 0) {
-                //std::cout << j << " : " << (calculated_joint_torques.data[j] - joints->effort[i] ) << std::endl ;
-                //std::cout << j << " : " << (joints->effort[i] ) << std::endl ;
-			}
-		}
-	}
     //publish the torque stored in joint_torque
     publishJointTorques(calculated_joint_torques );
 }
