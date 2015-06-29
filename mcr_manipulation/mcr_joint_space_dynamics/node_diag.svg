@@ -14,7 +14,10 @@
    id="svg2"
    version="1.1"
    inkscape:version="0.48.3.1 r9886"
-   sodipodi:docname="node_diag.svg">
+   sodipodi:docname="node_diag.svg"
+   inkscape:export-filename="/home/deebuls/catkin_ws/src/mas_common_robotics/mcr_manipulation/mcr_joint_space_dynamics/node_diag.svg.png"
+   inkscape:export-xdpi="324.42661"
+   inkscape:export-ydpi="324.42661">
   <defs
      id="defs4">
     <marker
@@ -38,9 +41,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.42177734"
+     inkscape:zoom="2.4500426"
      inkscape:cx="551.61286"
-     inkscape:cy="508.74512"
+     inkscape:cy="587.44273"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="true"
@@ -213,6 +216,6 @@
          x="578"
          y="392.36218"
          id="tspan5325-8"
-         style="text-align:start;text-anchor:start">msg : /brics_actuator/JointTorques</tspan></text>
+         style="text-align:start;text-anchor:start">msg : sensor_msgs JointState</tspan></text>
   </g>
 </svg>
