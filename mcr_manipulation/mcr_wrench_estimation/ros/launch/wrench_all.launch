@@ -1,6 +1,5 @@
 <?xml version="1.0"?>
 <launch>
-    <rosparam command="load" file="$(find mcr_joint_space_dynamics)/ros/test/only_arm_param_dump.yaml" />
   <arg name="input_topic" default="/joint_states" />
   <arg name="node_name" default="mcr_wrench_estimation" />
   
