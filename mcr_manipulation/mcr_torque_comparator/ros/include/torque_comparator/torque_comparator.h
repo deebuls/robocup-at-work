@@ -17,7 +17,7 @@
 #include <ros/ros.h>
 #include <message_filters/subscriber.h>
 #include <message_filters/time_synchronizer.h>
-#include <message_filters/sync_policies/exact_time.h>
+#include <message_filters/sync_policies/approximate_time.h>
 //KDL libraries
 #include <kdl/kdl.hpp>
 #include <kdl/jntarray.hpp>
@@ -60,10 +60,15 @@ public:
      */
     message_filters::Subscriber<sensor_msgs::JointState> sub_calculated_torques_;
 
+    /**
+     * Approximate sync policy for the message filters
+     */
+    typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::JointState, sensor_msgs::JointState> torque_comparator_sync_policy;
+
     /*
      * Synchronized subscriber for bot Calculated Torque and measured Torque
      */
-    message_filters::TimeSynchronizer<sensor_msgs::JointState,sensor_msgs::JointState> *sync_;
+    message_filters::Synchronizer<torque_comparator_sync_policy> *sync_;
 
     /**
      * Difference Torque publisher

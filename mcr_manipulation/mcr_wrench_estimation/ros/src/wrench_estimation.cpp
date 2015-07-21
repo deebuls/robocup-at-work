@@ -113,6 +113,15 @@ bool WrenchEstimation::sendEstimatedWrench()
 
     pub_estimated_wrench_.publish(estimated_wrench_msg);
 
+    std::ofstream ofs;
+    ofs.open("/tmp/wrench.csv", std::ofstream::out | std::ofstream::app);
+    ofs << estimated_wrench_msg.wrench.force.x << " " <<
+           estimated_wrench_msg.wrench.force.y << " " <<
+           estimated_wrench_msg.wrench.force.z << " " <<
+           estimated_wrench_msg.wrench.torque.x << " " <<
+           estimated_wrench_msg.wrench.torque.y << " " <<
+           estimated_wrench_msg.wrench.torque.z << std::endl;
+
     return true;
 }
 

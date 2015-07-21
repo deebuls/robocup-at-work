@@ -100,7 +100,6 @@ void ArmJointSpaceDynamics::jointstateCallback(sensor_msgs::JointStateConstPtr j
                 calculated_joint_states_.position[i] = joints->position[i];
                 calculated_joint_states_.velocity[i] = joints->velocity[i];
                 calculated_joint_states_.name[i] = joints->name[i];
-                std::cout << "time difference : "<<time_difference <<std::endl;
 			}
 		}
 	}
@@ -126,7 +125,7 @@ void ArmJointSpaceDynamics::publishJointTorques(KDL::JntArray calculated_joint_t
 		ROS_DEBUG("Calculated Torques %s: %.5f ", calculated_joint_states_.name[i].c_str(), 
 			  calculated_joint_states_.effort[i] );
 		if (isnan(calculated_joint_states_.effort[i])) {
-			ROS_ERROR("invalid joint torque: nan");
+			ROS_ERROR("[joint space dynamics] invalid joint torque: nan");
 			return;
 		}
 	}

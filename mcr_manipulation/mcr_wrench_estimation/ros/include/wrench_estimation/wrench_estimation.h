@@ -31,6 +31,10 @@
 #include <eigen3/Eigen/Core>
 #include <Eigen/Dense>
 
+//writing to csv file
+#include <iostream>
+#include <fstream>
+
 namespace mcr_wrench_estimation {
 
 /**
