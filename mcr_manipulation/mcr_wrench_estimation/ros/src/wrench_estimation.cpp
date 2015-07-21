@@ -6,6 +6,12 @@ using namespace mcr_wrench_estimation;
 
 WrenchEstimation::WrenchEstimation()
 {
+    std::ofstream ofs;
+ 
+    ofs.open("/tmp/wrench.csv", std::ofstream::out );
+    ofs.close();
+    ofs.open("/tmp/avg_wrench.csv", std::ofstream::out );
+    ofs.close();
 }
 
 
@@ -122,6 +128,15 @@ bool WrenchEstimation::sendEstimatedWrench()
            estimated_wrench_msg.wrench.torque.y << " " <<
            estimated_wrench_msg.wrench.torque.z << std::endl;
 
+    std::ofstream ofs1;
+    ofs1.open("/tmp/avg_wrench.csv", std::ofstream::out | std::ofstream::app);
+    double avg_force = sqrt(pow(estimated_wrench_msg.wrench.force.x , 2) +
+                            pow(estimated_wrench_msg.wrench.force.y ,2) +
+                            pow(estimated_wrench_msg.wrench.force.z ,2)    );
+    double avg_torque = sqrt(pow(estimated_wrench_msg.wrench.torque.x ,2) +
+                            pow(estimated_wrench_msg.wrench.torque.y ,2) +
+                            pow(estimated_wrench_msg.wrench.torque.z ,2)    );
+    ofs1 << avg_force << " " << avg_torque << std::endl;
     return true;
 }
 
