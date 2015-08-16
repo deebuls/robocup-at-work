@@ -6,12 +6,6 @@ using namespace mcr_wrench_estimation;
 
 WrenchEstimation::WrenchEstimation()
 {
-    std::ofstream ofs;
- 
-    ofs.open("/tmp/wrench.csv", std::ofstream::out );
-    ofs.close();
-    ofs.open("/tmp/avg_wrench.csv", std::ofstream::out );
-    ofs.close();
 }
 
 
@@ -28,6 +22,12 @@ void WrenchEstimation::onInit()
     nh_->getParam("root_name", root_name_);
     nh_->getParam("tip_name", tooltip_name_);
 
+    //looping node at 50 Hz
+    nh_->getParam("loop_rate", loop_rate_hz_);
+
+    //flag for selecting source of toruqes
+    nh_->getParam("use_difference_torque", use_difference_torque_flag_);
+
     ROS_INFO("---------------------");
     ROS_INFO("Initializing chain from %s to %s", root_name_.c_str(),
             tooltip_name_.c_str());
@@ -39,6 +39,7 @@ void WrenchEstimation::onInit()
                      tooltip_name_,
                      arm_chain_,
                      joint_limits_);
+
     ROS_INFO("DOF in the chain: %d", arm_chain_.getNrOfJoints());
     ROS_INFO("Chain initialized");
     DOF_ = arm_chain_.getNrOfJoints();
@@ -52,11 +53,26 @@ void WrenchEstimation::onInit()
 	sub_joint_states_ = nh_->subscribe("/joint_states",
 			1, &WrenchEstimation::jointstateCallback, this);
 
-	sub_torque_publisher_ = nh_->subscribe("/mcr_manipulation/mcr_torque_comparator/torques_difference",
-            1, &WrenchEstimation::torqueCallback, this);
+    if (use_difference_torque_flag_) { 
+        sub_torque_publisher_ =
+        nh_->subscribe("/mcr_manipulation/mcr_torque_comparator/torques_difference",
+                1, &WrenchEstimation::torqueCallback, this);
+
+    }
 
 	//register publisher
 	pub_estimated_wrench_ = nh_->advertise<geometry_msgs::WrenchStamped>("estimated_wrench", 1);
+
+	//loop with 50Hz
+	ros::Rate loop_rate(loop_rate_hz_);
+
+	while (ros::ok()) {
+
+		ros::spinOnce();
+        sendEstimatedWrench();
+		loop_rate.sleep();
+	}
+
 }
 
 
@@ -74,6 +90,11 @@ void WrenchEstimation::jointstateCallback(sensor_msgs::JointStateConstPtr joints
 
 			if (chainjoint != 0 && strcmp(chainjoint, joint_uri) == 0) {
 				joint_positions_.data[j] = joints->position[i];
+                if (!use_difference_torque_flag_) { 
+                    // If dont use difference torque 
+                    // then use joint torques directly
+                    joint_torques_.data[j] = -1 * joints->effort[i];
+                }
 			}
 		}
 	}
@@ -119,24 +140,6 @@ bool WrenchEstimation::sendEstimatedWrench()
 
     pub_estimated_wrench_.publish(estimated_wrench_msg);
 
-    std::ofstream ofs;
-    ofs.open("/tmp/wrench.csv", std::ofstream::out | std::ofstream::app);
-    ofs << estimated_wrench_msg.wrench.force.x << " " <<
-           estimated_wrench_msg.wrench.force.y << " " <<
-           estimated_wrench_msg.wrench.force.z << " " <<
-           estimated_wrench_msg.wrench.torque.x << " " <<
-           estimated_wrench_msg.wrench.torque.y << " " <<
-           estimated_wrench_msg.wrench.torque.z << std::endl;
-
-    std::ofstream ofs1;
-    ofs1.open("/tmp/avg_wrench.csv", std::ofstream::out | std::ofstream::app);
-    double avg_force = sqrt(pow(estimated_wrench_msg.wrench.force.x , 2) +
-                            pow(estimated_wrench_msg.wrench.force.y ,2) +
-                            pow(estimated_wrench_msg.wrench.force.z ,2)    );
-    double avg_torque = sqrt(pow(estimated_wrench_msg.wrench.torque.x ,2) +
-                            pow(estimated_wrench_msg.wrench.torque.y ,2) +
-                            pow(estimated_wrench_msg.wrench.torque.z ,2)    );
-    ofs1 << avg_force << " " << avg_torque << std::endl;
     return true;
 }
 
@@ -151,6 +154,4 @@ void WrenchEstimation::torqueCallback(brics_actuator::JointTorques torques)
 			return;
 		}
 	}
-    if(!sendEstimatedWrench())
-        ROS_ERROR("Error in sending wrench value");
 }

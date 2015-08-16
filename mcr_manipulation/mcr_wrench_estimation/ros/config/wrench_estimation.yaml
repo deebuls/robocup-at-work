@@ -1,2 +1,5 @@
 root_name: arm_link_0
 tip_name: arm_link_5
+loop_rate: 50
+use_difference_torque: true
+

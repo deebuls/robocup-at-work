@@ -113,6 +113,16 @@ private:
 	std::string root_name_;
 
     /*
+     * Looping rate of the node 
+     */
+    int loop_rate_hz_;
+
+    /*
+     *Boolean for checking difference 
+     */
+    bool use_difference_torque_flag_;
+
+    /*
      * degree of freedom of the arm 
      */
     unsigned int DOF_;
