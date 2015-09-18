@@ -24,10 +24,10 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
     if(GCC_VERSION VERSION_GREATER 4.6 OR GCC_VERSION VERSION_EQUAL 4.6)
         add_definitions(-std=gnu++0x)
-    else(GCC_VERSION VERSION_GREATER 4.6 OR GCC_VERSION VERSION_EQUAL 4.6)
+    else()
         message(SEND_ERROR "You need GCC version 4.6 or greater to compile this package.")
-    endif(GCC_VERSION VERSION_GREATER 4.6 OR GCC_VERSION VERSION_EQUAL 4.6)
-endif(CMAKE_COMPILER_IS_GNUCXX)
+    endif()
+endif()
 
 
 
@@ -42,6 +42,13 @@ target_link_libraries(pca_pose_estimator
   ${PCL_LIBRARIES}
 )
 
+### TESTS
+if(CATKIN_ENABLE_TESTING)
+  find_package(roslaunch REQUIRED)
+  roslaunch_add_file_check(ros/launch)
+endif()
+
+### INSTALLS
 install(TARGETS pca_pose_estimator
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

@@ -59,6 +59,7 @@ add_dependencies(contour_template_matcher
 )
 add_dependencies(contour_finder
   ${catkin_EXPORTED_TARGETS}
+  ${PROJECT_NAME}_gencfg
 )
 
 target_link_libraries(contour_finder
@@ -72,6 +73,13 @@ target_link_libraries(contour_template_matcher
   ${PCL_LIBRARIES}
 )
 
+### TESTS
+if(CATKIN_ENABLE_TESTING)
+  find_package(roslaunch REQUIRED)
+  roslaunch_add_file_check(ros/launch)
+endif()
+
+### INSTALLS
 install(TARGETS contour_finder
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

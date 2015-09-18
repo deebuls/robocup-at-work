@@ -8,8 +8,8 @@
 #include <mcr_collision_velocity_filter/collision_velocity_filter.h>
 
 CollisionVelocityFilter::CollisionVelocityFilter() :
-        soft_padding_front_rear_(0.15), hard_padding_front_rear_(0.02), soft_padding_left_right_(0.15), hard_padding_left_right_(0.06), linear_velocity_in_soft_padding_(0.02), angular_velocity_in_soft_padding_(
-                0.1)
+    soft_padding_front_rear_(0.15), hard_padding_front_rear_(0.02), soft_padding_left_right_(0.15), hard_padding_left_right_(0.06), linear_velocity_in_soft_padding_(0.02), angular_velocity_in_soft_padding_(
+        0.1)
 {
     zero_twist_velocity_.linear.x = zero_twist_velocity_.linear.y = zero_twist_velocity_.linear.z = 0.0;
     zero_twist_velocity_.angular.x = zero_twist_velocity_.angular.y = zero_twist_velocity_.angular.z = 0.0;
@@ -83,21 +83,19 @@ geometry_msgs::Twist CollisionVelocityFilter::calculateSafeBaseVelocities(const 
             in_soft_padding = true;
     }
 
-    // reduce the velocity if the robot is close to an obstacle
+    // initialize with the actually commanded velocity
+    safe_twist.linear = desired_twist.linear;
+    safe_twist.angular = desired_twist.angular;
+
+    // reduce the velocity if the robot is close to an obstacle and if the commanded velocity is greater than the velocity allowed in the soft padding region
     if (in_soft_padding)
     {
-        if (desired_twist.linear.x != 0)
+        if (desired_twist.linear.x != 0 && fabs(desired_twist.linear.x) > linear_velocity_in_soft_padding_)
             safe_twist.linear.x = linear_velocity_in_soft_padding_ * (desired_twist.linear.x / fabs(desired_twist.linear.x));
-        if (desired_twist.linear.y != 0)
+        if (desired_twist.linear.y != 0 && fabs(desired_twist.linear.y) > linear_velocity_in_soft_padding_)
             safe_twist.linear.y = linear_velocity_in_soft_padding_ * (desired_twist.linear.y / fabs(desired_twist.linear.y));
-        if (desired_twist.angular.z != 0)
+        if (desired_twist.angular.z != 0 && fabs(desired_twist.angular.z) > angular_velocity_in_soft_padding_)
             safe_twist.angular.z = angular_velocity_in_soft_padding_ * (desired_twist.angular.z / fabs(desired_twist.angular.z));
-    }
-    // use the actually commanded velocity if not close to any obstacle
-    else
-    {
-        safe_twist.linear = desired_twist.linear;
-        safe_twist.angular = desired_twist.angular;
     }
 
     return safe_twist;

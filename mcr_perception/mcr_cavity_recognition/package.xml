@@ -21,5 +21,8 @@
 
   <run_depend>mcr_perception_msgs</run_depend>
   <run_depend>mcr_contour_matching</run_depend>
+  <run_depend>mcr_pose_estimation</run_depend>
+
+  <test_depend>roslaunch</test_depend>
 
 </package>

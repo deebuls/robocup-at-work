@@ -16,4 +16,6 @@
 
   <run_depend>std_msgs</run_depend>
 
+  <test_depend>roslaunch</test_depend>
+
 </package>

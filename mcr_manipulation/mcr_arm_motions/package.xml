@@ -19,4 +19,8 @@
   <run_depend>rospy</run_depend>
   <run_depend>std_msgs</run_depend>
   <run_depend>geometry_msgs</run_depend>
+  <run_depend>brics_actuator</run_depend>
+  <run_depend>moveit_commander</run_depend>
+
+  <test_depend>rostest</test_depend>
 </package>
